@@ -1,0 +1,7 @@
+{
+  "name": "Committee Ledger Pro",
+  "description": "A comprehensive committee management system for tracking multi-year savings, monthly collections, automated interest calculations, and digital receipt generation.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
