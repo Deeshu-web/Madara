@@ -11,7 +11,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <!-- Babel Standalone: Essential for running .tsx directly in browser without a build step -->
+  <!-- Babel Standalone: Crucial for browser-side TSX transpilation -->
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
   <style>
@@ -44,6 +44,7 @@
     }
   </style>
 
+  <!-- Cleaned Import Map: One version only to prevent "Multiple instances of React" error -->
   <script type="importmap">
 {
   "imports": {
@@ -61,8 +62,8 @@
   <div id="root"></div>
 
   <!-- 
-    We use type="text/babel" so Babel processes the TSX.
-    data-type="module" allows Babel to handle the 'import' statements correctly.
+    The script type must be text/babel for Babel to pick it up.
+    The data-type="module" is essential for supporting 'import' syntax in Babel.
   -->
   <script 
     type="text/babel" 
