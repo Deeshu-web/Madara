@@ -12,6 +12,7 @@ const Auth: React.FC<AuthProps> = ({ onAuthSuccess }) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
 
+  // New Supabase Project Details
   const SUPABASE_URL = "https://plyqhelkzjqbijtunhkx.supabase.co";
   const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBseXFoZWxrempxYmlqdHVuaGt4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc3Nzk0NTEsImV4cCI6MjA4MzM1NTQ1MX0.svthqULb3ykqXdJfAZJF6_LmAt2bc1kMAe8F3rBAT0A";
 
@@ -53,7 +54,6 @@ const Auth: React.FC<AuthProps> = ({ onAuthSuccess }) => {
 
   return (
     <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6 relative overflow-hidden">
-      {/* Background Decor */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-600/10 blur-[120px] rounded-full"></div>
       <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-rose-600/5 blur-[120px] rounded-full"></div>
       
@@ -65,7 +65,7 @@ const Auth: React.FC<AuthProps> = ({ onAuthSuccess }) => {
           <h1 className="text-4xl font-black text-white tracking-tighter uppercase leading-none">
             Shree Jai Mata Di
           </h1>
-          <p className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.5em] mt-3">Digital Committee Ledger</p>
+          <p className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.5em] mt-3">Cloud Ledger - New ID</p>
         </div>
 
         <div className="bg-white/5 backdrop-blur-2xl p-8 rounded-[3rem] border border-white/10 shadow-2xl">
@@ -123,7 +123,7 @@ const Auth: React.FC<AuthProps> = ({ onAuthSuccess }) => {
         </div>
 
         <p className="text-center mt-12 text-[9px] font-black text-white/20 uppercase tracking-[0.3em]">
-          Securely encrypted via Supabase Cloud
+          Securely connected to: plyqhelkzjqbijtunhkx
         </p>
       </div>
     </div>

@@ -6,7 +6,7 @@ export const MONTHS = [
   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
 ];
 
-// Supabase Configuration
+// Updated Supabase Configuration for new Project ID
 const SUPABASE_URL = "https://plyqhelkzjqbijtunhkx.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBseXFoZWxrempxYmlqdHVuaGt4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc3Nzk0NTEsImV4cCI6MjA4MzM1NTQ1MX0.svthqULb3ykqXdJfAZJF6_LmAt2bc1kMAe8F3rBAT0A";
 
@@ -68,8 +68,7 @@ export const fetchFromSupabase = async (tableName: string) => {
 
 export const saveToStorage = (key: string, data: any) => {
   localStorage.setItem(getStorageKey(key), JSON.stringify(data));
-  // Trigger background sync to Supabase
-  // We use the key as the table name (standardized)
+  
   const tableNameMap: Record<string, string> = {
     'members': 'members',
     'committees': 'committees',
