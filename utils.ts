@@ -6,9 +6,9 @@ export const MONTHS = [
   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
 ];
 
-// Updated Supabase Configuration for new Project ID
+// Updated Supabase Configuration with the provided API Key
 const SUPABASE_URL = "https://plyqhelkzjqbijtunhkx.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBseXFoZWxrempxYmlqdHVuaGt4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc3Nzk0NTEsImV4cCI6MjA4MzM1NTQ1MX0.svthqULb3ykqXdJfAZJF6_LmAt2bc1kMAe8F3rBAT0A";
+const SUPABASE_KEY = "AIzaSyD9wY8t8gCeL0GgeVIUSOmI5R1WQF1ShqE";
 
 export const getMonthLabel = (index: number) => {
   const yearOffset = Math.floor(index / 12);
