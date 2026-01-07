@@ -1,13 +1,14 @@
 
 import React, { useState, useEffect, createContext, useContext } from 'react';
 import { Member, Committee, PaymentRecord, TabType, Loan, LoanRepayment, MemberSubscription } from './types';
-import { loadFromStorage, saveToStorage } from './utils';
+import { loadFromStorage, saveToStorage, fetchFromSupabase } from './utils';
 import Dashboard from './components/Dashboard';
 import MemberManager from './components/MemberManager';
 import CommitteeManager from './components/CommitteeManager';
 import PaymentGrid from './components/PaymentGrid';
 import LoanManager from './components/LoanManager';
 import SearchPortal from './components/SearchPortal';
+import Auth from './components/Auth';
 
 interface AppContextType {
   triggerAction: (message: string, duration?: number) => Promise<void>;
@@ -16,9 +17,11 @@ interface AppContextType {
 export const AppContext = createContext<AppContextType | null>(null);
 
 const App: React.FC = () => {
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem('jmd_auth_token'));
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
   const [currentTime, setCurrentTime] = useState(new Date());
   const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const [isCloudSyncing, setIsCloudSyncing] = useState(false);
   
   const [members, setMembers] = useState<Member[]>(() => loadFromStorage('members', []));
   const [committees, setCommittees] = useState<Committee[]>(() => loadFromStorage('committees', []));
@@ -27,17 +30,56 @@ const App: React.FC = () => {
   const [loanRepayments, setLoanRepayments] = useState<LoanRepayment[]>(() => loadFromStorage('loan_repayments', []));
   const [subscriptions, setSubscriptions] = useState<MemberSubscription[]>(() => loadFromStorage('subscriptions', []));
 
+  // Cloud Initialization only after login
+  useEffect(() => {
+    if (!token) return;
+
+    const initCloud = async () => {
+      setIsCloudSyncing(true);
+      const cloudMembers = await fetchFromSupabase('members');
+      if (cloudMembers) setMembers(cloudMembers);
+      
+      const cloudCommittees = await fetchFromSupabase('committees');
+      if (cloudCommittees) setCommittees(cloudCommittees);
+
+      const cloudPayments = await fetchFromSupabase('payments');
+      if (cloudPayments) setPayments(cloudPayments);
+
+      const cloudLoans = await fetchFromSupabase('loans');
+      if (cloudLoans) setLoans(cloudLoans);
+
+      const cloudRepayments = await fetchFromSupabase('loan_repayments');
+      if (cloudRepayments) setLoanRepayments(cloudRepayments);
+
+      const cloudSubs = await fetchFromSupabase('subscriptions');
+      if (cloudSubs) setSubscriptions(cloudSubs);
+      
+      setIsCloudSyncing(false);
+    };
+    initCloud();
+  }, [token]);
+
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
-  useEffect(() => { saveToStorage('members', members); }, [members]);
-  useEffect(() => { saveToStorage('committees', committees); }, [committees]);
-  useEffect(() => { saveToStorage('payments', payments); }, [payments]);
-  useEffect(() => { saveToStorage('loans', loans); }, [loans]);
-  useEffect(() => { saveToStorage('loan_repayments', loanRepayments); }, [loanRepayments]);
-  useEffect(() => { saveToStorage('subscriptions', subscriptions); }, [subscriptions]);
+  useEffect(() => { if (token) saveToStorage('members', members); }, [members, token]);
+  useEffect(() => { if (token) saveToStorage('committees', committees); }, [committees, token]);
+  useEffect(() => { if (token) saveToStorage('payments', payments); }, [payments, token]);
+  useEffect(() => { if (token) saveToStorage('loans', loans); }, [loans, token]);
+  useEffect(() => { if (token) saveToStorage('loan_repayments', loanRepayments); }, [loanRepayments, token]);
+  useEffect(() => { if (token) saveToStorage('subscriptions', subscriptions); }, [subscriptions, token]);
+
+  const handleAuthSuccess = (newToken: string) => {
+    localStorage.setItem('jmd_auth_token', newToken);
+    setToken(newToken);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('jmd_auth_token');
+    setToken(null);
+  };
 
   const triggerAction = async (message: string, duration: number = 1200) => {
     setActionMessage(message);
@@ -88,6 +130,10 @@ const App: React.FC = () => {
     setLoanRepayments(prev => [...prev, repayment]);
   };
 
+  if (!token) {
+    return <Auth onAuthSuccess={handleAuthSuccess} />;
+  }
+
   return (
     <AppContext.Provider value={{ triggerAction }}>
       <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row overflow-hidden">
@@ -122,7 +168,6 @@ const App: React.FC = () => {
             </div>
           </div>
 
-          {/* Menu Items with Seamless Connection Effect */}
           <div className="flex-1 flex flex-col gap-1 pl-6">
             <NavItem active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} icon="fas fa-grid-2" label="Dashboard" />
             <NavItem active={activeTab === 'search'} onClick={() => setActiveTab('search')} icon="fas fa-magnifying-glass" label="Member Search" />
@@ -132,9 +177,29 @@ const App: React.FC = () => {
             <NavItem active={activeTab === 'loans'} onClick={() => setActiveTab('loans')} icon="fas fa-hand-holding-usd" label="Loans" />
           </div>
 
-          <div className="p-8 mt-auto">
-            <div className="bg-white/5 p-4 rounded-3xl border border-white/5 flex items-center gap-4 mb-4">
-               <div className="w-8 h-8 bg-indigo-600/20 text-indigo-400 rounded-xl flex items-center justify-center">
+          <div className="p-8 mt-auto space-y-4">
+            <div className={`p-4 rounded-3xl border transition-all flex items-center gap-4 ${isCloudSyncing ? 'bg-indigo-600/10 border-indigo-500/30' : 'bg-white/5 border-white/5'}`}>
+               <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${isCloudSyncing ? 'bg-indigo-600 text-white animate-pulse' : 'bg-indigo-600/20 text-indigo-400'}`}>
+                  <i className={`fas ${isCloudSyncing ? 'fa-cloud-arrow-up' : 'fa-cloud-check'} text-xs`}></i>
+               </div>
+               <div>
+                  <p className="text-[8px] font-black text-white/40 uppercase tracking-widest">{isCloudSyncing ? 'Syncing...' : 'Cloud Active'}</p>
+                  <p className="text-xs font-black text-white tracking-tighter">Supabase v1.0</p>
+               </div>
+            </div>
+            
+            <button 
+              onClick={handleLogout}
+              className="w-full flex items-center gap-4 px-4 py-3 bg-white/5 border border-white/5 rounded-3xl hover:bg-rose-500/10 hover:border-rose-500/20 transition-all text-white/60 hover:text-rose-400 group"
+            >
+              <div className="w-8 h-8 bg-white/5 rounded-xl flex items-center justify-center group-hover:bg-rose-500/20">
+                <i className="fas fa-sign-out-alt text-xs"></i>
+              </div>
+              <span className="text-[10px] font-black uppercase tracking-widest">Logout Admin</span>
+            </button>
+
+            <div className="bg-white/5 p-4 rounded-3xl border border-white/5 flex items-center gap-4">
+               <div className="w-8 h-8 bg-white/5 text-white/40 rounded-xl flex items-center justify-center">
                   <i className="fas fa-clock text-xs"></i>
                </div>
                <div>
@@ -202,14 +267,12 @@ const App: React.FC = () => {
 
         <style>{`
           .nav-item-active {
-            background-color: #f8fafc; /* Matches bg-slate-50 exactly */
-            color: #0f172a; /* Matches text-slate-900 */
+            background-color: #f8fafc;
+            color: #0f172a;
             border-radius: 40px 0 0 40px;
             position: relative;
             z-index: 10;
           }
-
-          /* Inverse Rounded Corners to remove black boundaries */
           .nav-item-active::before,
           .nav-item-active::after {
             content: "";
@@ -220,20 +283,16 @@ const App: React.FC = () => {
             background-color: transparent;
             pointer-events: none;
           }
-
           .nav-item-active::before {
             top: -40px;
             border-radius: 0 0 40px 0;
             box-shadow: 20px 20px 0 20px #f8fafc;
           }
-
           .nav-item-active::after {
             bottom: -40px;
             border-radius: 0 40px 0 0;
             box-shadow: 20px -20px 0 20px #f8fafc;
           }
-          
-          nav { position: relative; }
         `}</style>
       </div>
     </AppContext.Provider>

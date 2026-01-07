@@ -1,7 +1,8 @@
 
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useContext } from 'react';
 import { Member, Committee, PaymentRecord, Loan, MemberSubscription, LoanRepayment } from '../types';
 import { formatCurrency, getMonthLabel } from '../utils';
+import { AppContext } from '../App';
 
 interface DashboardProps {
   members: Member[];
@@ -29,6 +30,7 @@ const StatCard: React.FC<{ label: string; value: string; sub: string; icon: stri
 );
 
 const Dashboard: React.FC<DashboardProps> = ({ members, committees, payments, loans, subscriptions, loanRepayments }) => {
+  const context = useContext(AppContext);
   const [now, setNow] = useState(new Date());
   
   useEffect(() => {
@@ -39,7 +41,6 @@ const Dashboard: React.FC<DashboardProps> = ({ members, committees, payments, lo
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth();
 
-  // Global Loan Stats with Refined Priority Logic
   const loanStats = useMemo(() => {
     let totalIssued = 0;
     let totalRecovered = 0;
@@ -130,7 +131,6 @@ const Dashboard: React.FC<DashboardProps> = ({ members, committees, payments, lo
     <div className="space-y-12 animate-in fade-in duration-1000 pb-20">
       <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
         <div className="flex items-center gap-6 group">
-          {/* Main Brand Logo Emblem */}
           <div className="relative">
             <div className="absolute inset-0 bg-indigo-600 blur-2xl opacity-20 group-hover:opacity-40 transition-opacity"></div>
             <div className="relative w-24 h-24 bg-slate-900 rounded-[2rem] flex items-center justify-center shadow-2xl shadow-slate-950/20 border border-white/10 group-hover:rotate-6 transition-transform duration-700 overflow-hidden">
@@ -147,25 +147,24 @@ const Dashboard: React.FC<DashboardProps> = ({ members, committees, payments, lo
               </h2>
               <div className="flex items-center gap-4 mt-3">
                  <div className="h-[2px] w-12 bg-indigo-600/30"></div>
-                 <p className="text-slate-400 font-black uppercase tracking-[0.4em] text-[10px]">Trusted Committee System</p>
+                 <p className="text-slate-400 font-black uppercase tracking-[0.4em] text-[10px]">Secure Local Ledger</p>
               </div>
             </div>
           </div>
         </div>
         
-        <div className="bg-white p-6 rounded-[2.5rem] shadow-2xl shadow-slate-200/50 flex items-center gap-6 border border-slate-100 group">
-           <div className="w-16 h-16 bg-slate-950 text-white rounded-3xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-500">
-             <i className="fas fa-calendar-day text-2xl"></i>
-           </div>
-           <div className="pr-4">
-             <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-1">Live Audit Time</p>
-             <h3 className="text-2xl font-black text-slate-900 tracking-tighter">
-               {now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}
-             </h3>
-             <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest mt-1">
-               {now.toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}
-             </p>
-           </div>
+        <div className="flex flex-col gap-3">
+          <div className="bg-white p-6 rounded-[2.5rem] shadow-2xl shadow-slate-200/50 flex items-center gap-6 border border-slate-100 group">
+             <div className="w-16 h-16 bg-slate-950 text-white rounded-3xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-500">
+               <i className="fas fa-calendar-day text-2xl"></i>
+             </div>
+             <div className="pr-4">
+               <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-1">Live Audit Time</p>
+               <h3 className="text-2xl font-black text-slate-900 tracking-tighter">
+                 {now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}
+               </h3>
+             </div>
+          </div>
         </div>
       </header>
 
@@ -192,11 +191,6 @@ const Dashboard: React.FC<DashboardProps> = ({ members, committees, payments, lo
             </div>
             <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.4em]">Active Batch Audit</h3>
           </div>
-          {committees.length > 2 && (
-             <span className="text-[9px] font-bold text-slate-300 uppercase tracking-widest bg-slate-100 px-3 py-1 rounded-full">
-               Scroll down to view more batches
-             </span>
-          )}
         </div>
         
         <div className="max-h-[800px] overflow-y-auto pr-4 custom-dashboard-scroll">
@@ -239,7 +233,6 @@ const Dashboard: React.FC<DashboardProps> = ({ members, committees, payments, lo
                     </div>
                   </div>
 
-                  {/* Monthly Stats Row */}
                   <div className="grid grid-cols-2 gap-4 mb-6 relative z-10">
                     <div className="bg-emerald-50 rounded-2xl p-4 border border-emerald-100/50 flex items-center justify-between">
                       <div>
@@ -287,25 +280,12 @@ const Dashboard: React.FC<DashboardProps> = ({ members, committees, payments, lo
                   </div>
 
                   <div className="mt-8 pt-6 border-t border-slate-100 flex justify-between items-center relative z-10">
-                    <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em]">JAI MATA DI • SECURITY AUDITED</p>
-                    <button className="flex items-center gap-2 text-[10px] font-black text-indigo-600 uppercase tracking-widest hover:bg-indigo-50 px-4 py-2 rounded-xl transition-all">
-                      <i className="fas fa-file-pdf"></i> Download Audit
-                    </button>
+                    <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em]">JAI MATA DI • SADA SAHAY</p>
                   </div>
                 </div>
               );
             })}
           </div>
-          
-          {committees.length === 0 && (
-            <div className="col-span-full py-32 bg-white rounded-[4rem] border-2 border-dashed border-slate-200 text-center flex flex-col items-center">
-               <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-6">
-                 <i className="fas fa-folder-open text-3xl text-slate-200"></i>
-               </div>
-               <p className="text-slate-400 font-bold uppercase tracking-widest text-sm">No Active Batches Initialized</p>
-               <p className="text-slate-300 text-xs mt-2 font-bold uppercase tracking-tighter">Please start a new batch from the Batches menu</p>
-            </div>
-          )}
         </div>
       </section>
 
@@ -319,9 +299,6 @@ const Dashboard: React.FC<DashboardProps> = ({ members, committees, payments, lo
         .custom-dashboard-scroll::-webkit-scrollbar-thumb {
           background: rgba(79, 70, 229, 0.1);
           border-radius: 20px;
-        }
-        .custom-dashboard-scroll::-webkit-scrollbar-thumb:hover {
-          background: rgba(79, 70, 229, 0.2);
         }
         .custom-scrollbar::-webkit-scrollbar {
           width: 4px;
