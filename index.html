@@ -11,7 +11,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <!-- Babel Standalone: This allows the browser to run .tsx files directly -->
+  <!-- Babel Standalone: Essential for running .tsx directly in browser without a build step -->
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
   <style>
@@ -60,9 +60,10 @@
 <body>
   <div id="root"></div>
 
-  <!-- Note: We use type="text/babel" so Babel Standalone processes the TSX code -->
-  <!-- data-presets="react,typescript" tells Babel how to handle the code -->
-  <!-- data-type="module" ensures that imports/exports still work like ESM -->
+  <!-- 
+    We use type="text/babel" so Babel processes the TSX.
+    data-type="module" allows Babel to handle the 'import' statements correctly.
+  -->
   <script 
     type="text/babel" 
     data-presets="react,typescript" 
