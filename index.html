@@ -4,22 +4,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Committee Ledger Pro</title>
+  <title>Committee Ledger Pro | Jai Mata Di</title>
   
   <!-- Tailwind & Utilities -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <!-- Babel Standalone: Crucial for browser-side TSX transpilation -->
+  <!-- Babel Standalone: Essential for browser-side TSX transpilation -->
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
     body {
       font-family: 'Inter', sans-serif;
       background-color: #f8fafc;
       margin: 0;
+      overflow: hidden;
     }
     #root:empty {
       display: flex;
@@ -29,11 +30,12 @@
       background: #0f172a;
       color: white;
       font-weight: bold;
-      font-family: sans-serif;
+      flex-direction: column;
+      gap: 20px;
     }
     #root:empty::after {
       content: "INITIALIZING LEDGER...";
-      letter-spacing: 0.3em;
+      letter-spacing: 0.5em;
       font-size: 11px;
       opacity: 0.6;
       animation: pulse 2s infinite;
@@ -41,6 +43,22 @@
     @keyframes pulse {
       0%, 100% { opacity: 0.3; }
       50% { opacity: 0.8; }
+    }
+    .boot-error {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #ef4444;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-family: monospace;
+      z-index: 9999;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+      max-width: 90%;
+      text-align: center;
     }
   </style>
 
@@ -50,7 +68,6 @@
     "react": "https://esm.sh/react@19.0.0",
     "react-dom": "https://esm.sh/react-dom@19.0.0",
     "react-dom/client": "https://esm.sh/react-dom@19.0.0/client",
-    "@google/genai": "https://esm.sh/@google/genai",
     "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
     "react/": "https://esm.sh/react@^19.2.3/"
   }
@@ -61,14 +78,35 @@
   <div id="root"></div>
 
   <!-- 
-    The script type must be text/babel for Babel to pick it up.
-    The data-type="module" is essential for supporting 'import' syntax in Babel.
+    Inline the entry point to bypass MIME type issues with .tsx files on static hosts.
   -->
-  <script 
-    type="text/babel" 
-    data-presets="react,typescript" 
-    data-type="module" 
-    src="./index.tsx">
+  <script type="text/babel" data-presets="react,typescript" data-type="module">
+    import React from 'react';
+    import { createRoot } from 'react-dom/client';
+    import App from './App.tsx';
+
+    // Global logger for deployment errors
+    window.onerror = function(msg, url, lineNo, columnNo, error) {
+      const errDiv = document.createElement('div');
+      errDiv.className = 'boot-error';
+      errDiv.innerHTML = `<b>Boot Error:</b> ${msg}<br/><small>${url}:${lineNo}</small>`;
+      document.body.appendChild(errDiv);
+      return false;
+    };
+
+    try {
+      const rootElement = document.getElementById('root');
+      if (rootElement) {
+        const root = createRoot(rootElement);
+        root.render(
+          <React.StrictMode>
+            <App />
+          </React.StrictMode>
+        );
+      }
+    } catch (err) {
+      console.error("React mount failed:", err);
+    }
   </script>
 </body>
 </html>

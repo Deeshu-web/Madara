@@ -30,7 +30,6 @@ const StatCard: React.FC<{ label: string; value: string; sub: string; icon: stri
 );
 
 const Dashboard: React.FC<DashboardProps> = ({ members, committees, payments, loans, subscriptions, loanRepayments }) => {
-  const context = useContext(AppContext);
   const [now, setNow] = useState(new Date());
   
   useEffect(() => {
@@ -59,8 +58,12 @@ const Dashboard: React.FC<DashboardProps> = ({ members, committees, payments, lo
       let totalPaidForThisLoan = 0;
 
       for (let m = 0; m <= monthsElapsed; m++) {
-        const monthlyInterest = principal * (loan.interestRate / 100);
-        accruedInterest += monthlyInterest;
+        // RULE: LOAN ME INTREST JO MONTH ME LEGA USKE NEXT MONTH SE INTREST LAGEGA
+        // m = 0 is the month loan was taken. Interest starts from m = 1.
+        if (m > 0) {
+          const monthlyInterest = principal * (loan.interestRate / 100);
+          accruedInterest += monthlyInterest;
+        }
 
         const startOfMonth = new Date(startDate.getFullYear(), startDate.getMonth() + m, 1);
         const endOfMonth = new Date(startDate.getFullYear(), startDate.getMonth() + m + 1, 0, 23, 59, 59);
@@ -108,6 +111,7 @@ const Dashboard: React.FC<DashboardProps> = ({ members, committees, payments, lo
       for (let i = 0; i < elapsedMonths; i++) {
         const payment = payments.find(p => p.memberId === sub.memberId && p.committeeYear === batch.year && p.monthIndex === i);
         if (!payment || !payment.isPaid) {
+          // Interest/Fine logic for committee payments can also start after first month
           const interest = i > 0 ? sub.monthlyAmount * 0.01 : 0;
           arrears += sub.monthlyAmount + interest;
           missedCount++;
@@ -178,7 +182,7 @@ const Dashboard: React.FC<DashboardProps> = ({ members, committees, payments, lo
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           <StatCard label="Total Issued" value={formatCurrency(loanStats.totalIssued)} sub="Current Outflow" icon="fas fa-money-bill-transfer" color="bg-slate-950" />
           <StatCard label="Total Recovered" value={formatCurrency(loanStats.totalRecovered)} sub="Current Inflow" icon="fas fa-sack-dollar" color="bg-emerald-600" />
-          <StatCard label="Active Debt" value={formatCurrency(loanStats.totalBalance)} sub="Interest First Logic" icon="fas fa-hourglass-half" color="bg-rose-600" />
+          <StatCard label="Active Debt" value={formatCurrency(loanStats.totalBalance)} sub="Interest Starts Next Month" icon="fas fa-hourglass-half" color="bg-rose-600" />
           <StatCard label="Member Count" value={members.length.toString()} sub="Registered Profiles" icon="fas fa-users-viewfinder" color="bg-indigo-600" />
         </div>
       </section>
