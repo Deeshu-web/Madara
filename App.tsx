@@ -1,13 +1,13 @@
 
 import React, { useState, useEffect, createContext, useContext } from 'react';
-import { Member, Committee, PaymentRecord, TabType, Loan, LoanRepayment, MemberSubscription } from './types';
-import { loadFromStorage, saveToStorage } from './utils';
-import Dashboard from './components/Dashboard';
-import MemberManager from './components/MemberManager';
-import CommitteeManager from './components/CommitteeManager';
-import PaymentGrid from './components/PaymentGrid';
-import LoanManager from './components/LoanManager';
-import SearchPortal from './components/SearchPortal';
+import { Member, Committee, PaymentRecord, TabType, Loan, LoanRepayment, MemberSubscription } from './types.ts';
+import { loadFromStorage, saveToStorage } from './utils.ts';
+import Dashboard from './components/Dashboard.tsx';
+import MemberManager from './components/MemberManager.tsx';
+import CommitteeManager from './components/CommitteeManager.tsx';
+import PaymentGrid from './components/PaymentGrid.tsx';
+import LoanManager from './components/LoanManager.tsx';
+import SearchPortal from './components/SearchPortal.tsx';
 
 interface AppContextType {
   triggerAction: (message: string, duration?: number) => Promise<void>;
@@ -32,21 +32,12 @@ const App: React.FC = () => {
     return () => clearInterval(timer);
   }, []);
 
-  // Save to local storage whenever data changes - No token check required anymore
   useEffect(() => { saveToStorage('members', members); }, [members]);
   useEffect(() => { saveToStorage('committees', committees); }, [committees]);
   useEffect(() => { saveToStorage('payments', payments); }, [payments]);
   useEffect(() => { saveToStorage('loans', loans); }, [loans]);
   useEffect(() => { saveToStorage('loan_repayments', loanRepayments); }, [loanRepayments]);
   useEffect(() => { saveToStorage('subscriptions', subscriptions); }, [subscriptions]);
-
-  const handleResetData = async () => {
-    if (confirm("Are you sure? This will delete all local records permanently.")) {
-      await triggerAction("Clearing Database...");
-      localStorage.clear();
-      window.location.reload();
-    }
-  };
 
   const triggerAction = async (message: string, duration: number = 1200) => {
     setActionMessage(message);
@@ -139,8 +130,6 @@ const App: React.FC = () => {
           </div>
 
           <div className="p-8 mt-auto space-y-4">
-            {/* Database Status and Reset Button Removed as per request */}
-            
             <div className="bg-white/5 p-4 rounded-3xl border border-white/5 flex items-center gap-4">
                <div className="w-8 h-8 bg-white/5 text-white/40 rounded-xl flex items-center justify-center">
                   <i className="fas fa-clock text-xs"></i>

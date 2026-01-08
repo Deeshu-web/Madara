@@ -1,8 +1,8 @@
 
 import React, { useMemo, useState, useEffect, useContext } from 'react';
-import { Member, Committee, PaymentRecord, Loan, MemberSubscription, LoanRepayment } from '../types';
-import { formatCurrency, getMonthLabel } from '../utils';
-import { AppContext } from '../App';
+import { Member, Committee, PaymentRecord, Loan, MemberSubscription, LoanRepayment } from '../types.ts';
+import { formatCurrency, getMonthLabel } from '../utils.ts';
+import { AppContext } from '../App.tsx';
 
 interface DashboardProps {
   members: Member[];
