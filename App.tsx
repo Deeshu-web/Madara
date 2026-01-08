@@ -1,14 +1,13 @@
 
 import React, { useState, useEffect, createContext, useContext } from 'react';
 import { Member, Committee, PaymentRecord, TabType, Loan, LoanRepayment, MemberSubscription } from './types';
-import { loadFromStorage, saveToStorage, fetchFromSupabase } from './utils';
+import { loadFromStorage, saveToStorage } from './utils';
 import Dashboard from './components/Dashboard';
 import MemberManager from './components/MemberManager';
 import CommitteeManager from './components/CommitteeManager';
 import PaymentGrid from './components/PaymentGrid';
 import LoanManager from './components/LoanManager';
 import SearchPortal from './components/SearchPortal';
-import Auth from './components/Auth';
 
 interface AppContextType {
   triggerAction: (message: string, duration?: number) => Promise<void>;
@@ -17,11 +16,9 @@ interface AppContextType {
 export const AppContext = createContext<AppContextType | null>(null);
 
 const App: React.FC = () => {
-  const [token, setToken] = useState<string | null>(() => localStorage.getItem('jmd_auth_token'));
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
   const [currentTime, setCurrentTime] = useState(new Date());
   const [actionMessage, setActionMessage] = useState<string | null>(null);
-  const [isCloudSyncing, setIsCloudSyncing] = useState(false);
   
   const [members, setMembers] = useState<Member[]>(() => loadFromStorage('members', []));
   const [committees, setCommittees] = useState<Committee[]>(() => loadFromStorage('committees', []));
@@ -30,55 +27,25 @@ const App: React.FC = () => {
   const [loanRepayments, setLoanRepayments] = useState<LoanRepayment[]>(() => loadFromStorage('loan_repayments', []));
   const [subscriptions, setSubscriptions] = useState<MemberSubscription[]>(() => loadFromStorage('subscriptions', []));
 
-  // Cloud Initialization only after login
-  useEffect(() => {
-    if (!token) return;
-
-    const initCloud = async () => {
-      setIsCloudSyncing(true);
-      const cloudMembers = await fetchFromSupabase('members');
-      if (cloudMembers) setMembers(cloudMembers);
-      
-      const cloudCommittees = await fetchFromSupabase('committees');
-      if (cloudCommittees) setCommittees(cloudCommittees);
-
-      const cloudPayments = await fetchFromSupabase('payments');
-      if (cloudPayments) setPayments(cloudPayments);
-
-      const cloudLoans = await fetchFromSupabase('loans');
-      if (cloudLoans) setLoans(cloudLoans);
-
-      const cloudRepayments = await fetchFromSupabase('loan_repayments');
-      if (cloudRepayments) setLoanRepayments(cloudRepayments);
-
-      const cloudSubs = await fetchFromSupabase('subscriptions');
-      if (cloudSubs) setSubscriptions(cloudSubs);
-      
-      setIsCloudSyncing(false);
-    };
-    initCloud();
-  }, [token]);
-
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
-  useEffect(() => { if (token) saveToStorage('members', members); }, [members, token]);
-  useEffect(() => { if (token) saveToStorage('committees', committees); }, [committees, token]);
-  useEffect(() => { if (token) saveToStorage('payments', payments); }, [payments, token]);
-  useEffect(() => { if (token) saveToStorage('loans', loans); }, [loans, token]);
-  useEffect(() => { if (token) saveToStorage('loan_repayments', loanRepayments); }, [loanRepayments, token]);
-  useEffect(() => { if (token) saveToStorage('subscriptions', subscriptions); }, [subscriptions, token]);
+  // Save to local storage whenever data changes - No token check required anymore
+  useEffect(() => { saveToStorage('members', members); }, [members]);
+  useEffect(() => { saveToStorage('committees', committees); }, [committees]);
+  useEffect(() => { saveToStorage('payments', payments); }, [payments]);
+  useEffect(() => { saveToStorage('loans', loans); }, [loans]);
+  useEffect(() => { saveToStorage('loan_repayments', loanRepayments); }, [loanRepayments]);
+  useEffect(() => { saveToStorage('subscriptions', subscriptions); }, [subscriptions]);
 
-  const handleAuthSuccess = (newToken: string) => {
-    localStorage.setItem('jmd_auth_token', newToken);
-    setToken(newToken);
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('jmd_auth_token');
-    setToken(null);
+  const handleResetData = async () => {
+    if (confirm("Are you sure? This will delete all local records permanently.")) {
+      await triggerAction("Clearing Database...");
+      localStorage.clear();
+      window.location.reload();
+    }
   };
 
   const triggerAction = async (message: string, duration: number = 1200) => {
@@ -130,15 +97,10 @@ const App: React.FC = () => {
     setLoanRepayments(prev => [...prev, repayment]);
   };
 
-  if (!token) {
-    return <Auth onAuthSuccess={handleAuthSuccess} />;
-  }
-
   return (
     <AppContext.Provider value={{ triggerAction }}>
       <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row overflow-hidden">
         
-        {/* Global Action Loader Box (Centered) */}
         {actionMessage && (
           <div className="fixed inset-0 z-[200] flex items-center justify-center animate-in fade-in duration-300">
             <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"></div>
@@ -154,7 +116,6 @@ const App: React.FC = () => {
           </div>
         )}
 
-        {/* Sidebar Navigation */}
         <nav className="w-full md:w-72 bg-slate-950 text-white flex flex-col shrink-0 z-20 transition-all duration-300">
           <div className="p-8 pb-4">
             <div className="flex items-center gap-4 mb-8">
@@ -178,26 +139,8 @@ const App: React.FC = () => {
           </div>
 
           <div className="p-8 mt-auto space-y-4">
-            <div className={`p-4 rounded-3xl border transition-all flex items-center gap-4 ${isCloudSyncing ? 'bg-indigo-600/10 border-indigo-500/30' : 'bg-white/5 border-white/5'}`}>
-               <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${isCloudSyncing ? 'bg-indigo-600 text-white animate-pulse' : 'bg-indigo-600/20 text-indigo-400'}`}>
-                  <i className={`fas ${isCloudSyncing ? 'fa-cloud-arrow-up' : 'fa-cloud-check'} text-xs`}></i>
-               </div>
-               <div>
-                  <p className="text-[8px] font-black text-white/40 uppercase tracking-widest">{isCloudSyncing ? 'Syncing...' : 'Cloud Active'}</p>
-                  <p className="text-xs font-black text-white tracking-tighter">Supabase v1.0</p>
-               </div>
-            </div>
+            {/* Database Status and Reset Button Removed as per request */}
             
-            <button 
-              onClick={handleLogout}
-              className="w-full flex items-center gap-4 px-4 py-3 bg-white/5 border border-white/5 rounded-3xl hover:bg-rose-500/10 hover:border-rose-500/20 transition-all text-white/60 hover:text-rose-400 group"
-            >
-              <div className="w-8 h-8 bg-white/5 rounded-xl flex items-center justify-center group-hover:bg-rose-500/20">
-                <i className="fas fa-sign-out-alt text-xs"></i>
-              </div>
-              <span className="text-[10px] font-black uppercase tracking-widest">Logout Admin</span>
-            </button>
-
             <div className="bg-white/5 p-4 rounded-3xl border border-white/5 flex items-center gap-4">
                <div className="w-8 h-8 bg-white/5 text-white/40 rounded-xl flex items-center justify-center">
                   <i className="fas fa-clock text-xs"></i>
@@ -210,7 +153,6 @@ const App: React.FC = () => {
           </div>
         </nav>
 
-        {/* Main Content Area */}
         <main className="flex-1 overflow-y-auto bg-slate-50 relative">
           <div className="p-4 md:p-12 animate-in fade-in duration-500">
             {activeTab === 'dashboard' && (

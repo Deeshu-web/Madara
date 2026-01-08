@@ -6,49 +6,21 @@ interface AuthProps {
 }
 
 const Auth: React.FC<AuthProps> = ({ onAuthSuccess }) => {
-  const [isLogin, setIsLogin] = useState(true);
-  const [loading, setLoading] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [passcode, setPasscode] = useState('');
   const [error, setError] = useState<string | null>(null);
 
-  // New Supabase Project Details with provided API Key
-  const SUPABASE_URL = "https://plyqhelkzjqbijtunhkx.supabase.co";
-  const SUPABASE_KEY = "AIzaSyD9wY8t8gCeL0GgeVIUSOmI5R1WQF1ShqE";
+  // Simple local passcode for demonstration/local security
+  // In a real local-only app, this just provides a barrier to accidental access
+  const MASTER_PASSCODE = "123456"; 
 
-  const handleAuth = async (e: React.FormEvent) => {
+  const handleAuth = (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setError(null);
-
-    const endpoint = isLogin ? 'token?grant_type=password' : 'signup';
-    
-    try {
-      const response = await fetch(`${SUPABASE_URL}/auth/v1/${endpoint}`, {
-        method: 'POST',
-        headers: {
-          'apikey': SUPABASE_KEY,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ email, password })
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error_description || data.msg || 'Authentication failed');
-      }
-
-      if (isLogin) {
-        onAuthSuccess(data.access_token);
-      } else {
-        alert("Registration successful! Please login.");
-        setIsLogin(true);
-      }
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+    if (passcode === MASTER_PASSCODE) {
+      // Use a random string as a local "token"
+      onAuthSuccess("local_authenticated_" + Date.now());
+    } else {
+      setError("Incorrect Passcode. Access Denied.");
+      setPasscode('');
     }
   };
 
@@ -65,35 +37,26 @@ const Auth: React.FC<AuthProps> = ({ onAuthSuccess }) => {
           <h1 className="text-4xl font-black text-white tracking-tighter uppercase leading-none">
             Shree Jai Mata Di
           </h1>
-          <p className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.5em] mt-3">Cloud Ledger - Secure Access</p>
+          <p className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.5em] mt-3">Local Ledger - Private Access</p>
         </div>
 
         <div className="bg-white/5 backdrop-blur-2xl p-8 rounded-[3rem] border border-white/10 shadow-2xl">
           <h2 className="text-2xl font-black text-white mb-6 text-center tracking-tight">
-            {isLogin ? 'Welcome Back' : 'Create Admin Account'}
+            Security Check
           </h2>
 
-          <form onSubmit={handleAuth} className="space-y-4">
+          <form onSubmit={handleAuth} className="space-y-6">
             <div>
-              <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-4 mb-2 block">Email Address</label>
-              <input 
-                type="email" 
-                required
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                className="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-2xl text-white outline-none focus:ring-2 focus:ring-indigo-500 font-bold transition-all"
-                placeholder="name@example.com"
-              />
-            </div>
-            <div>
-              <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-4 mb-2 block">Password</label>
+              <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-4 mb-2 block">Enter Master Passcode</label>
               <input 
                 type="password" 
                 required
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                className="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-2xl text-white outline-none focus:ring-2 focus:ring-indigo-500 font-bold transition-all"
-                placeholder="••••••••"
+                autoFocus
+                value={passcode}
+                onChange={e => setPasscode(e.target.value)}
+                className="w-full px-6 py-6 bg-white/5 border border-white/10 rounded-2xl text-white text-center text-4xl tracking-[1em] outline-none focus:ring-2 focus:ring-indigo-500 font-bold transition-all"
+                placeholder="••••••"
+                maxLength={6}
               />
             </div>
 
@@ -104,26 +67,16 @@ const Auth: React.FC<AuthProps> = ({ onAuthSuccess }) => {
             )}
 
             <button 
-              disabled={loading}
               type="submit"
-              className="w-full py-5 bg-indigo-600 text-white font-black text-xs uppercase tracking-[0.2em] rounded-2xl shadow-xl shadow-indigo-900/40 hover:bg-indigo-500 transition-all active:scale-95 disabled:opacity-50"
+              className="w-full py-5 bg-indigo-600 text-white font-black text-xs uppercase tracking-[0.2em] rounded-2xl shadow-xl shadow-indigo-900/40 hover:bg-indigo-50 transition-all active:scale-95"
             >
-              {loading ? 'Processing...' : (isLogin ? 'Sign In' : 'Register')}
+              Unlock Ledger
             </button>
           </form>
-
-          <div className="mt-8 pt-8 border-t border-white/5 text-center">
-            <button 
-              onClick={() => setIsLogin(!isLogin)}
-              className="text-xs font-black text-white/40 hover:text-white uppercase tracking-widest transition-colors"
-            >
-              {isLogin ? "Don't have an account? Sign Up" : "Already have an account? Log In"}
-            </button>
-          </div>
         </div>
 
         <p className="text-center mt-12 text-[9px] font-black text-white/20 uppercase tracking-[0.3em]">
-          Securely connected • JAI MATA DI
+          Local Storage Mode • JAI MATA DI
         </p>
       </div>
     </div>
